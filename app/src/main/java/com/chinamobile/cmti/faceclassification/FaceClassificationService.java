@@ -1,6 +1,8 @@
 package com.chinamobile.cmti.faceclassification;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.ThumbnailUtils;
 
 import com.chinamobile.faceClassification.server.ActionsRequestBuilders;
 import com.chinamobile.faceClassification.server.FaceClassification;
@@ -34,8 +36,9 @@ public class FaceClassificationService {
     private static ActionsRequestBuilders actionsRequestBuilders = new ActionsRequestBuilders();
 
     public static FaceClassification classifyImage(String fileName, Bitmap bitmap){
+        Bitmap thumbnail = ThumbnailUtils.extractThumbnail(bitmap, 47, 57);
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        thumbnail.compress(Bitmap.CompressFormat.JPEG, 100, stream);
         FaceImage faceImage = new FaceImage().setImageName(getBaseName(fileName)).setImageContent(ByteString.copy(stream.toByteArray()));
 
         ActionRequest<FaceClassification> actionRequest = actionsRequestBuilders.actionClassifyPhoto().faceImageParam(faceImage).build();
