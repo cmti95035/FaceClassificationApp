@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">人脸识别演示</string>
+    <string name="action_settings">人脸识别演示</string>
+    <string name="hello">欢迎来到美研所!</string>
+    <string name="btnIntend">拍摄脸部识别照片</string>
+    <string name="btnIntendS">拍摄脸部识别照片</string>
+    <string name="btnIntendV">拍视频</string>
+    <string name="cannot">Cannot</string>
+    <string name="album_name">CameraSample</string>
+</resources>
