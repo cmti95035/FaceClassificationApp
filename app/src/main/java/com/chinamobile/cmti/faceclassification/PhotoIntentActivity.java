@@ -21,9 +21,14 @@ import android.widget.TextView;
 import android.widget.VideoView;
 
 import com.chinamobile.faceClassification.server.FaceClassification;
+import com.kairos.Kairos;
+import com.kairos.KairosListener;
+
+import org.json.JSONException;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -35,6 +40,14 @@ public class PhotoIntentActivity extends AppCompatActivity {
 
     private static final String BITMAP_STORAGE_KEY = "viewbitmap";
     private static final String IMAGEVIEW_VISIBILITY_STORAGE_KEY = "imageviewvisibility";
+    private static final String app_id = "faaa8087";
+    private static final String api_key = "0eee0b3a727cf973c499fbe1170ae230";
+    private static final String subjectId = "who am I";
+    private static final String galleryId = "employees";
+    private static final String selector = "FULL";
+    private static final String threshold = "0.75";
+    private static final String minHeadScale = "0.25";
+    private static final String maxNumResults = "2";
     private ImageView mImageView;
     private Bitmap mImageBitmap;
     private TextView mTextView;
@@ -46,6 +59,9 @@ public class PhotoIntentActivity extends AppCompatActivity {
     private Bitmap thumbnail = null;
 
     private AlbumStorageDirFactory mAlbumStorageDirFactory = null;
+
+    private KairosListener kairosListener = null;
+    private Kairos myKairos = null;
 
 
     /* Photo album for this application */
@@ -168,11 +184,25 @@ public class PhotoIntentActivity extends AppCompatActivity {
     private void handleSmallCameraPhoto(Intent intent) {
         Bundle extras = intent.getExtras();
         mImageBitmap = (Bitmap) extras.get("data");
-        FaceClassification faceClassification = FaceClassificationService.classifyImage("input.jpg", mImageBitmap);
+//        FaceClassification faceClassification = FaceClassificationService.classifyImage("input.jpg", mImageBitmap);
+        // classify the image just taken
+        try {
+            myKairos.recognize(mImageBitmap,
+                    galleryId,
+                    selector,
+                    threshold,
+                    minHeadScale,
+                    maxNumResults,
+                    kairosListener);
+        }catch (JSONException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         mImageView.setImageBitmap(mImageBitmap);
         mImageView.setVisibility(View.VISIBLE);
-        mTextView.setText(faceClassification.toString());
-        mTextView.setVisibility(View.VISIBLE);
+//        mTextView.setText(faceClassification.toString());
+//        mTextView.setVisibility(View.VISIBLE);
     }
 
     private void handleBigCameraPhoto() {
@@ -221,6 +251,55 @@ public class PhotoIntentActivity extends AppCompatActivity {
         }
         mTextView = (TextView) findViewById(R.id.textView);
         mTextView.setVisibility(View.INVISIBLE);
+
+        try {
+            // listener
+             kairosListener = new KairosListener() {
+
+                @Override
+                public void onSuccess(String response) {
+                    Log.d("KAIROS DEMO", response);
+                    mTextView.setText("Classification result: " + response);
+                    mTextView.setVisibility(View.VISIBLE);
+                }
+
+                @Override
+                public void onFail(String response) {
+                    Log.d("KAIROS DEMO", response);
+                }
+            };
+
+
+        /* * * instantiate a new kairos instance * * */
+            myKairos = new Kairos();
+
+        /* * * set authentication * * */
+            myKairos.setAuthentication(this, app_id, api_key);
+
+            // enroll coworkers photos once
+            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.jian);
+//            Bitmap thumbnail = ThumbnailUtils.extractThumbnail(bitmap, 270, 480);
+            String selector = "FULL";
+            String multipleFaces = "false";
+            String minHeadScale = "0.25";
+//            myKairos.enroll(bitmap,
+//                    "jian",
+//                    galleryId,
+//                    selector,
+//                    multipleFaces,
+//                    minHeadScale,
+//                    kairosListener);
+//
+//            mImageView.setImageBitmap(bitmap);
+//            mImageView.setVisibility(View.VISIBLE);
+            myKairos.listGalleries(kairosListener);
+
+            //TODO: needs to add more photos of the individuals who might go to AT&T Hackathon
+        }catch (JSONException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
