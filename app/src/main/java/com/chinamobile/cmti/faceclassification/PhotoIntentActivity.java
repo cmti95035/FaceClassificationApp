@@ -24,13 +24,18 @@ import com.chinamobile.faceClassification.server.FaceClassification;
 import com.kairos.Kairos;
 import com.kairos.KairosListener;
 
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 public class PhotoIntentActivity extends AppCompatActivity {
@@ -40,14 +45,6 @@ public class PhotoIntentActivity extends AppCompatActivity {
 
     private static final String BITMAP_STORAGE_KEY = "viewbitmap";
     private static final String IMAGEVIEW_VISIBILITY_STORAGE_KEY = "imageviewvisibility";
-    private static final String app_id = "faaa8087";
-    private static final String api_key = "0eee0b3a727cf973c499fbe1170ae230";
-    private static final String subjectId = "who am I";
-    private static final String galleryId = "employees";
-    private static final String selector = "FULL";
-    private static final String threshold = "0.75";
-    private static final String minHeadScale = "0.25";
-    private static final String maxNumResults = "2";
     private ImageView mImageView;
     private Bitmap mImageBitmap;
     private TextView mTextView;
@@ -60,9 +57,28 @@ public class PhotoIntentActivity extends AppCompatActivity {
 
     private AlbumStorageDirFactory mAlbumStorageDirFactory = null;
 
+    // Kairos related params
+    private static final String app_id = "faaa8087";
+    private static final String api_key = "0eee0b3a727cf973c499fbe1170ae230";
+    private static final String galleryId = "employees";
+    private static final String selector = "FULL";
+    private static final String threshold = "0.75";
+    private static final String minHeadScale = "0.25";
+    private static final String maxNumResults = "2";
+    private static final String TAG_ERRORS = "Errors";
+    private static final String TAG_IMAGES = "images";
+    private static final String TAG_TRANSACTION = "transaction";
+    private static final String TAG_CANDIDATES = "candidates";
+    private static final String TAG_SUBJECT = "subject";
+    private static final String TAG_SUBJECTID = "subject_id";
+    private static final String TAG_STATUS = "status";
+    private static final String TAG_CONFIDENCE = "confidence";
+
     private KairosListener kairosListener = null;
     private Kairos myKairos = null;
 
+    String[] employStrings = {"lisa", "charlie", "rui", "jian", "qingfeng"};
+    HashSet<String> employees = new HashSet<>(Arrays.asList(employStrings));
 
     /* Photo album for this application */
     private String getAlbumName() {
@@ -78,8 +94,8 @@ public class PhotoIntentActivity extends AppCompatActivity {
             storageDir = mAlbumStorageDirFactory.getAlbumStorageDir(getAlbumName());
 
             if (storageDir != null) {
-                if (! storageDir.mkdirs()) {
-                    if (! storageDir.exists()){
+                if (!storageDir.mkdirs()) {
+                    if (!storageDir.exists()) {
                         Log.d("CameraSample", "failed to create directory");
                         return null;
                     }
@@ -113,7 +129,7 @@ public class PhotoIntentActivity extends AppCompatActivity {
     private void setPic() {
 
 		/* There isn't enough memory to open up more than a couple camera photos */
-		/* So pre-scale the target bitmap into which the file is decoded */
+        /* So pre-scale the target bitmap into which the file is decoded */
 
 		/* Get the size of the ImageView */
         int targetW = mImageView.getWidth();
@@ -129,7 +145,7 @@ public class PhotoIntentActivity extends AppCompatActivity {
 		/* Figure out which way needs to be reduced less */
         int scaleFactor = 1;
         if ((targetW > 0) || (targetH > 0)) {
-            scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+            scaleFactor = Math.min(photoW / targetW, photoH / targetH);
         }
 
 		/* Set bitmap options to scale the image decode target */
@@ -159,7 +175,7 @@ public class PhotoIntentActivity extends AppCompatActivity {
 
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-        switch(actionCode) {
+        switch (actionCode) {
             case ACTION_TAKE_PHOTO_B:
                 File f = null;
 
@@ -194,7 +210,7 @@ public class PhotoIntentActivity extends AppCompatActivity {
                     minHeadScale,
                     maxNumResults,
                     kairosListener);
-        }catch (JSONException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -228,7 +244,9 @@ public class PhotoIntentActivity extends AppCompatActivity {
             };
 
 
-    /** Called when the activity is first created. */
+    /**
+     * Called when the activity is first created.
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -254,18 +272,49 @@ public class PhotoIntentActivity extends AppCompatActivity {
 
         try {
             // listener
-             kairosListener = new KairosListener() {
+            kairosListener = new KairosListener() {
 
                 @Override
                 public void onSuccess(String response) {
-                    Log.d("KAIROS DEMO", response);
-                    mTextView.setText("Classification result: " + response);
+                    Log.d("Kairos response:", response);
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+
+                        if (jsonObject.has(TAG_ERRORS)) {
+                            // image error
+                            // TODO: goes to webRTC session
+                        } else {
+                            JSONArray images = (JSONArray) jsonObject.getJSONArray(TAG_IMAGES);
+                            if (((JSONObject) ((JSONObject) images.get(0)).get(TAG_TRANSACTION)).get(TAG_STATUS).equals("failure")) {
+                                // no match
+                                // TODO: goes to webRTC session
+                            } else {
+                                JSONObject transaction = (JSONObject) ((JSONObject) images.get(0)).get(TAG_TRANSACTION);
+                                String name = transaction.has(TAG_SUBJECT) ? (String) transaction.get(TAG_SUBJECT) : (String) transaction.get(TAG_SUBJECTID);
+                                int confidence = (int)(Double.parseDouble((String) transaction.get(TAG_CONFIDENCE)) * 100);
+                                mTextView.setText("Photo matches with " + name + " with confidence: " + confidence + "%");
+
+                                // post the photo to Kairos
+                                myKairos.enroll(mImageBitmap,
+                                        name,
+                                        galleryId,
+                                        selector,
+                                        "false",
+                                        minHeadScale,
+                                        kairosListener);
+                            }
+                        }
+                    } catch (JSONException ex) {
+                        ex.printStackTrace();
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
                     mTextView.setVisibility(View.VISIBLE);
                 }
 
                 @Override
                 public void onFail(String response) {
-                    Log.d("KAIROS DEMO", response);
+                    Log.d("Kairos response:", response);
                 }
             };
 
@@ -277,25 +326,50 @@ public class PhotoIntentActivity extends AppCompatActivity {
             myKairos.setAuthentication(this, app_id, api_key);
 
             // enroll coworkers photos once
-            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.jian);
-//            Bitmap thumbnail = ThumbnailUtils.extractThumbnail(bitmap, 270, 480);
-            String selector = "FULL";
-            String multipleFaces = "false";
-            String minHeadScale = "0.25";
+//            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.charlie);
+//            String selector = "FULL";
+//            String multipleFaces = "false";
+//            String minHeadScale = "0.25";
 //            myKairos.enroll(bitmap,
-//                    "jian",
+//                    "charlie",
 //                    galleryId,
 //                    selector,
 //                    multipleFaces,
 //                    minHeadScale,
 //                    kairosListener);
 //
+//            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.rui);
+//            myKairos.enroll(bitmap,
+//                    "rui",
+//                    galleryId,
+//                    selector,
+//                    multipleFaces,
+//                    minHeadScale,
+//                    kairosListener);
+//
+//            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.qingfeng);
+//            myKairos.enroll(bitmap,
+//                    "qingfeng",
+//                    galleryId,
+//                    selector,
+//                    multipleFaces,
+//                    minHeadScale,
+//                    kairosListener);
+//
+//            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.lisa);
+//            myKairos.enroll(bitmap,
+//                    "lisa",
+//                    galleryId,
+//                    selector,
+//                    multipleFaces,
+//                    minHeadScale,
+//                    kairosListener);
 //            mImageView.setImageBitmap(bitmap);
 //            mImageView.setVisibility(View.VISIBLE);
             myKairos.listGalleries(kairosListener);
 
             //TODO: needs to add more photos of the individuals who might go to AT&T Hackathon
-        }catch (JSONException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -325,7 +399,7 @@ public class PhotoIntentActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putParcelable(BITMAP_STORAGE_KEY, mImageBitmap);
-        outState.putBoolean(IMAGEVIEW_VISIBILITY_STORAGE_KEY, (mImageBitmap != null) );
+        outState.putBoolean(IMAGEVIEW_VISIBILITY_STORAGE_KEY, (mImageBitmap != null));
         super.onSaveInstanceState(outState);
     }
 
@@ -349,10 +423,9 @@ public class PhotoIntentActivity extends AppCompatActivity {
      * http://android-developers.blogspot.com/2009/01/can-i-use-this-intent.html
      *
      * @param context The application's environment.
-     * @param action The Intent action to check for availability.
-     *
+     * @param action  The Intent action to check for availability.
      * @return True if an Intent with the specified action can be sent and
-     *         responded to, false otherwise.
+     * responded to, false otherwise.
      */
     public static boolean isIntentAvailable(Context context, String action) {
         final PackageManager packageManager = context.getPackageManager();
