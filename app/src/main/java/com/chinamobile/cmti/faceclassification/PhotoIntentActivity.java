@@ -1,5 +1,7 @@
 package com.chinamobile.cmti.faceclassification;
 
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -15,6 +17,10 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.webkit.PermissionRequest;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -48,6 +54,7 @@ public class PhotoIntentActivity extends AppCompatActivity {
     private ImageView mImageView;
     private Bitmap mImageBitmap;
     private TextView mTextView;
+    private WebView resultView;
 
     private String mCurrentPhotoPath;
 
@@ -282,12 +289,12 @@ public class PhotoIntentActivity extends AppCompatActivity {
 
                         if (jsonObject.has(TAG_ERRORS)) {
                             // image error
-                            // TODO: goes to webRTC session
+                            startWebRTC();
                         } else {
                             JSONArray images = (JSONArray) jsonObject.getJSONArray(TAG_IMAGES);
                             if (((JSONObject) ((JSONObject) images.get(0)).get(TAG_TRANSACTION)).get(TAG_STATUS).equals("failure")) {
                                 // no match
-                                // TODO: goes to webRTC session
+                                startWebRTC();
                             } else {
                                 JSONObject transaction = (JSONObject) ((JSONObject) images.get(0)).get(TAG_TRANSACTION);
                                 String name = transaction.has(TAG_SUBJECT) ? (String) transaction.get(TAG_SUBJECT) : (String) transaction.get(TAG_SUBJECTID);
@@ -376,6 +383,12 @@ public class PhotoIntentActivity extends AppCompatActivity {
         }
     }
 
+    void startWebRTC(){
+        final Intent intent = new Intent(this, WebRTCActivity.class);
+
+        startActivity(intent);
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
@@ -449,5 +462,4 @@ public class PhotoIntentActivity extends AppCompatActivity {
             btn.setClickable(false);
         }
     }
-
 }
