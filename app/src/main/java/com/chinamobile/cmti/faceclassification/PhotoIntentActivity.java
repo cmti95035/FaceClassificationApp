@@ -2,6 +2,7 @@ package com.chinamobile.cmti.faceclassification;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -83,6 +84,7 @@ public class PhotoIntentActivity extends AppCompatActivity {
 
     private KairosListener kairosListener = null;
     private Kairos myKairos = null;
+    private ProgressDialog mDialog;
 
     String[] employStrings = {"lisa", "charlie", "rui", "jian", "qingfeng"};
     HashSet<String> employees = new HashSet<>(Arrays.asList(employStrings));
@@ -210,6 +212,10 @@ public class PhotoIntentActivity extends AppCompatActivity {
 //        FaceClassification faceClassification = FaceClassificationService.classifyImage("input.jpg", mImageBitmap);
         // classify the image just taken
         try {
+            // setup a progressdialog and set the init state to false
+
+            mDialog.show();
+
             myKairos.recognize(mImageBitmap,
                     galleryId,
                     selector,
@@ -217,6 +223,7 @@ public class PhotoIntentActivity extends AppCompatActivity {
                     minHeadScale,
                     maxNumResults,
                     kairosListener);
+            //
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (UnsupportedEncodingException e) {
@@ -277,12 +284,23 @@ public class PhotoIntentActivity extends AppCompatActivity {
         mTextView = (TextView) findViewById(R.id.textView);
         mTextView.setVisibility(View.INVISIBLE);
 
+        // create a ProgressDialog
+        mDialog = new ProgressDialog(this);
+        // set indeterminate style
+        mDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        // set title and message
+        mDialog.setTitle("Please wait");
+        mDialog.setMessage("Recognizing...");
+
         try {
             // listener
             kairosListener = new KairosListener() {
 
                 @Override
                 public void onSuccess(String response) {
+                    if (mDialog.isShowing()) {
+                        mDialog.dismiss();
+                    }
                     Log.d("Kairos response:", response);
                     try {
                         JSONObject jsonObject = new JSONObject(response);
@@ -321,6 +339,9 @@ public class PhotoIntentActivity extends AppCompatActivity {
 
                 @Override
                 public void onFail(String response) {
+                    if (mDialog.isShowing()) {
+                        mDialog.dismiss();
+                    }
                     Log.d("Kairos response:", response);
                 }
             };
