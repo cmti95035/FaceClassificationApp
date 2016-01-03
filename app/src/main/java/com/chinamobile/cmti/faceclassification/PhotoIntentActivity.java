@@ -88,6 +88,8 @@ public class PhotoIntentActivity extends AppCompatActivity {
     String[] employStrings = {"lisa", "charlie", "rui", "jian", "qingfeng"};
     HashSet<String> employees = new HashSet<>(Arrays.asList(employStrings));
 
+    private DigitalLifeController digitalLifeController = null;
+
     /* Photo album for this application */
     private String getAlbumName() {
         return getString(R.string.album_name);
@@ -268,6 +270,26 @@ public class PhotoIntentActivity extends AppCompatActivity {
             };
 
 
+    void initDigitalLife(){
+        digitalLifeController = DigitalLifeController.getInstance();
+        digitalLifeController.init("NE_E8EDB275F5E8BE55_1", "https://systest.digitallife.att.com");
+        try{
+            digitalLifeController.login("553474421", "NO-PASSWD");
+        }catch (Exception e) {
+            System.out.println("Logout Failed");
+            e.printStackTrace();
+            return;
+        }
+    }
+
+    void unlockDoor()
+    {
+        try {
+            digitalLifeController.updateDevice("DL00000005", "lock", "unlock");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     /**
      * Called when the activity is first created.
      */
@@ -302,6 +324,7 @@ public class PhotoIntentActivity extends AppCompatActivity {
         mDialog.setTitle("Please wait");
         mDialog.setMessage("Recognizing...");
 
+        initDigitalLife();
         try {
             // listener
             kairosListener = new KairosListener() {
@@ -347,6 +370,7 @@ public class PhotoIntentActivity extends AppCompatActivity {
                                                 .LENGTH_LONG)
                                         .show();
 
+                                unlockDoor();
 
                                 // post the photo to Kairos
                                 myKairos.enroll(mImageBitmap,
@@ -502,7 +526,7 @@ public class PhotoIntentActivity extends AppCompatActivity {
                 try {
                     URL url = new URL("http://api.foundry.att" +
                             ".net:9001/a1/nca/callcontrol/call/4047241349" +
-                            "/4088860360");
+                            "/4047241345");
                     HttpURLConnection conn = (HttpURLConnection) url
                             .openConnection();
                     conn.setReadTimeout(30000);
