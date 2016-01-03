@@ -6,12 +6,23 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- SmiSdk Required Permissions -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- SmiSdk Intent Service required for all APIs  -->
+    <service android:name="com.datami.smi.SmiIntentService" />
+    //network change receiver
+    <receiver android:name="com.datami.smi.NetworkChangeReceiver">
+        <intent-filter >
+            <action android:name ="android.net.conn.CONNECTIVITY_CHANGE"/>
+        </intent-filter>
+    </receiver>
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
+        android:name=".FcApplication"
         android:theme="@style/AppTheme">
         <activity
             android:name=".PhotoIntentActivity"

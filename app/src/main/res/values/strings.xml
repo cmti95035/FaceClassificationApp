@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Un-manned Front Desk</string>
+    <string name="app_name">Free and Secure Front Desk Agent</string>
     <string name="action_settings">Un-manned Front Desk</string>
     <string name="hello">欢迎来到美研所!</string>
     <string name="btnIntend">Take A Photo Of Your Face</string>
@@ -7,4 +7,9 @@
     <string name="btnIntendV">拍视频</string>
     <string name="cannot">Cannot</string>
     <string name="album_name">CameraSample</string>
+    <string name="title_activity_hackathon">Hackathon</string>
+    <string-array name="devices">
+        <item>Speaker</item>
+        <item>Headset</item>
+    </string-array>
 </resources>
