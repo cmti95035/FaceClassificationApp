@@ -10,6 +10,7 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -37,6 +38,7 @@ android {
 }
 
 dependencies {
+    compile 'com.android.support:multidex:1.0.0'
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.1'
@@ -44,5 +46,9 @@ dependencies {
     compile 'com.linkedin.pegasus:restli-client:2.6.0'
     compile 'com.linkedin.pegasus:r2:2.6.0'
     compile 'com.linkedin.pegasus:restli-common:2.6.0'
-    compile 'org.imgscalr:imgscalr-lib:4.2'
+//    compile 'org.imgscalr:imgscalr-lib:4.2'
+    compile 'com.squareup.okhttp:okhttp:2.5.0'
+    compile 'com.squareup.retrofit:retrofit:1.9.0'
+    compile 'de.greenrobot:eventbus:2.4.0'
+    compile project(':ewebrtc-sdk')
 }

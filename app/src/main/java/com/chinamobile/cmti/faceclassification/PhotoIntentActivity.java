@@ -1,7 +1,5 @@
 package com.chinamobile.cmti.faceclassification;
 
-import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -18,16 +16,11 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.webkit.PermissionRequest;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.VideoView;
 
-import com.chinamobile.faceClassification.server.FaceClassification;
 import com.kairos.Kairos;
 import com.kairos.KairosListener;
 
@@ -42,7 +35,6 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 
 public class PhotoIntentActivity extends AppCompatActivity {
@@ -343,6 +335,7 @@ public class PhotoIntentActivity extends AppCompatActivity {
                         mDialog.dismiss();
                     }
                     Log.d("Kairos response:", response);
+                    startWebRTC();
                 }
             };
 
@@ -405,7 +398,8 @@ public class PhotoIntentActivity extends AppCompatActivity {
     }
 
     void startWebRTC(){
-        final Intent intent = new Intent(this, WebRTCActivity.class);
+        final Intent intent = new Intent(this, StartWebRTCActivity.class);
+//        final Intent intent = new Intent(this, WebRTCActivity.class);
 
         startActivity(intent);
     }
