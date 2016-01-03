@@ -1,7 +1,9 @@
 package com.chinamobile.cmti.faceclassification;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -9,6 +11,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -19,7 +22,7 @@ import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import com.kairos.Kairos;
 import com.kairos.KairosListener;
@@ -31,6 +34,8 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -43,10 +48,11 @@ public class PhotoIntentActivity extends AppCompatActivity {
     private static final int ACTION_TAKE_PHOTO_S = 2;
 
     private static final String BITMAP_STORAGE_KEY = "viewbitmap";
-    private static final String IMAGEVIEW_VISIBILITY_STORAGE_KEY = "imageviewvisibility";
+    private static final String IMAGEVIEW_VISIBILITY_STORAGE_KEY =
+            "imageviewvisibility";
     private ImageView mImageView;
     private Bitmap mImageBitmap;
-    private TextView mTextView;
+    //private TextView mTextView;
     private WebView resultView;
 
     private String mCurrentPhotoPath;
@@ -73,6 +79,7 @@ public class PhotoIntentActivity extends AppCompatActivity {
     private static final String TAG_SUBJECTID = "subject_id";
     private static final String TAG_STATUS = "status";
     private static final String TAG_CONFIDENCE = "confidence";
+    private static final String TAG = "PhotoIntentActivity";
 
     private KairosListener kairosListener = null;
     private Kairos myKairos = null;
@@ -90,9 +97,11 @@ public class PhotoIntentActivity extends AppCompatActivity {
     private File getAlbumDir() {
         File storageDir = null;
 
-        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+        if (Environment.MEDIA_MOUNTED.equals(Environment
+                .getExternalStorageState())) {
 
-            storageDir = mAlbumStorageDirFactory.getAlbumStorageDir(getAlbumName());
+            storageDir = mAlbumStorageDirFactory.getAlbumStorageDir
+                    (getAlbumName());
 
             if (storageDir != null) {
                 if (!storageDir.mkdirs()) {
@@ -104,7 +113,8 @@ public class PhotoIntentActivity extends AppCompatActivity {
             }
 
         } else {
-            Log.v(getString(R.string.app_name), "External storage is not mounted READ/WRITE.");
+            Log.v(getString(R.string.app_name), "External storage is not " +
+                    "mounted READ/WRITE.");
         }
 
         return storageDir;
@@ -112,10 +122,12 @@ public class PhotoIntentActivity extends AppCompatActivity {
 
     private File createImageFile() throws IOException {
         // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new
+                Date());
         String imageFileName = JPEG_FILE_PREFIX + timeStamp + "_";
         File albumF = getAlbumDir();
-        File imageF = File.createTempFile(imageFileName, JPEG_FILE_SUFFIX, albumF);
+        File imageF = File.createTempFile(imageFileName, JPEG_FILE_SUFFIX,
+                albumF);
         return imageF;
     }
 
@@ -129,7 +141,8 @@ public class PhotoIntentActivity extends AppCompatActivity {
 
     private void setPic() {
 
-		/* There isn't enough memory to open up more than a couple camera photos */
+		/* There isn't enough memory to open up more than a couple camera
+        photos */
         /* So pre-scale the target bitmap into which the file is decoded */
 
 		/* Get the size of the ImageView */
@@ -165,7 +178,8 @@ public class PhotoIntentActivity extends AppCompatActivity {
     }
 
     private void galleryAddPic() {
-        Intent mediaScanIntent = new Intent("android.intent.action.MEDIA_SCANNER_SCAN_FILE");
+        Intent mediaScanIntent = new Intent("android.intent.action" +
+                ".MEDIA_SCANNER_SCAN_FILE");
         File f = new File(mCurrentPhotoPath);
         Uri contentUri = Uri.fromFile(f);
         mediaScanIntent.setData(contentUri);
@@ -183,7 +197,8 @@ public class PhotoIntentActivity extends AppCompatActivity {
                 try {
                     f = setUpPhotoFile();
                     mCurrentPhotoPath = f.getAbsolutePath();
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(f));
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri
+                            .fromFile(f));
                 } catch (IOException e) {
                     e.printStackTrace();
                     f = null;
@@ -201,7 +216,8 @@ public class PhotoIntentActivity extends AppCompatActivity {
     private void handleSmallCameraPhoto(Intent intent) {
         Bundle extras = intent.getExtras();
         mImageBitmap = (Bitmap) extras.get("data");
-//        FaceClassification faceClassification = FaceClassificationService.classifyImage("input.jpg", mImageBitmap);
+//        FaceClassification faceClassification = FaceClassificationService
+// .classifyImage("input.jpg", mImageBitmap);
         // classify the image just taken
         try {
             // setup a progressdialog and set the init state to false
@@ -232,8 +248,10 @@ public class PhotoIntentActivity extends AppCompatActivity {
         if (mCurrentPhotoPath != null) {
             setPic();
             galleryAddPic();
-            thumbnail = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(mCurrentPhotoPath), 32, 32);
-//            FaceClassification faceClassification = FaceClassificationService.classifyImage("input.jpg", mImageBitmap);
+            thumbnail = ThumbnailUtils.extractThumbnail(BitmapFactory
+                    .decodeFile(mCurrentPhotoPath), 32, 32);
+//            FaceClassification faceClassification =
+// FaceClassificationService.classifyImage("input.jpg", mImageBitmap);
 //            mTextView.setText(faceClassification.toString());
 //            mTextView.setVisibility(View.VISIBLE);
             mCurrentPhotoPath = null;
@@ -273,8 +291,8 @@ public class PhotoIntentActivity extends AppCompatActivity {
         } else {
             mAlbumStorageDirFactory = new BaseAlbumDirFactory();
         }
-        mTextView = (TextView) findViewById(R.id.textView);
-        mTextView.setVisibility(View.INVISIBLE);
+        //mTextView = (TextView) findViewById(R.id.textView);
+        //mTextView.setVisibility(View.INVISIBLE);
 
         // create a ProgressDialog
         mDialog = new ProgressDialog(this);
@@ -301,16 +319,34 @@ public class PhotoIntentActivity extends AppCompatActivity {
                             // image error
                             startWebRTC();
                         } else {
-                            JSONArray images = (JSONArray) jsonObject.getJSONArray(TAG_IMAGES);
-                            if (((JSONObject) ((JSONObject) images.get(0)).get(TAG_TRANSACTION)).get(TAG_STATUS).equals("failure")) {
+                            JSONArray images = (JSONArray) jsonObject
+                                    .getJSONArray(TAG_IMAGES);
+                            if (((JSONObject) ((JSONObject) images.get(0))
+                                    .get(TAG_TRANSACTION)).get(TAG_STATUS)
+                                    .equals("failure")) {
                                 // no match
                                 startWebRTC();
                             } else {
-                                JSONObject transaction = (JSONObject) ((JSONObject) images.get(0)).get(TAG_TRANSACTION);
-                                String name = transaction.has(TAG_SUBJECT) ? (String) transaction.get(TAG_SUBJECT) : (String) transaction.get(TAG_SUBJECTID);
-                                int confidence = (int)(Double.parseDouble((String) transaction.get(TAG_CONFIDENCE)) * 100);
-//                                mTextView.setText("Photo matches with " + name + " with confidence: " + confidence + "%");
-                                mTextView.setText("Welcome " + name + "! The door will be opened for you.");
+                                JSONObject transaction = (JSONObject) (
+                                        (JSONObject) images.get(0)).get
+                                        (TAG_TRANSACTION);
+                                String name = transaction.has(TAG_SUBJECT) ?
+                                        (String) transaction.get(TAG_SUBJECT)
+                                        : (String) transaction.get
+                                        (TAG_SUBJECTID);
+                                int confidence = (int) (Double.parseDouble(
+                                        (String) transaction.get
+                                                (TAG_CONFIDENCE)) * 100);
+//                                mTextView.setText("Photo matches with " +
+// name + " with confidence: " + confidence + "%");
+                                //mTextView.setText("Welcome " + name + "!
+                                // The door will be opened for you.");
+                                Toast.makeText(getApplicationContext(),
+                                        "Welcome " + name + "! The door will " +
+                                                "be opened for you.", Toast
+                                                .LENGTH_LONG)
+                                        .show();
+
 
                                 // post the photo to Kairos
                                 myKairos.enroll(mImageBitmap,
@@ -327,7 +363,7 @@ public class PhotoIntentActivity extends AppCompatActivity {
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
                     }
-                    mTextView.setVisibility(View.VISIBLE);
+                    //mTextView.setVisibility(View.VISIBLE);
                 }
 
                 @Override
@@ -348,7 +384,8 @@ public class PhotoIntentActivity extends AppCompatActivity {
             myKairos.setAuthentication(this, app_id, api_key);
 
             // enroll coworkers photos once
-//            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.charlie2);
+//            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R
+// .drawable.charlie2);
 //            String selector = "FULL";
 //            String multipleFaces = "false";
 //            String minHeadScale = "0.25";
@@ -360,7 +397,8 @@ public class PhotoIntentActivity extends AppCompatActivity {
 //                    minHeadScale,
 //                    kairosListener);
 //
-//            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.rui);
+//            bitmap = BitmapFactory.decodeResource(getResources(), R
+// .drawable.rui);
 //            myKairos.enroll(bitmap,
 //                    "rui",
 //                    galleryId,
@@ -369,7 +407,8 @@ public class PhotoIntentActivity extends AppCompatActivity {
 //                    minHeadScale,
 //                    kairosListener);
 //
-//            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.qingfeng2);
+//            bitmap = BitmapFactory.decodeResource(getResources(), R
+// .drawable.qingfeng2);
 //            myKairos.enroll(bitmap,
 //                    "qingfeng",
 //                    galleryId,
@@ -378,7 +417,8 @@ public class PhotoIntentActivity extends AppCompatActivity {
 //                    minHeadScale,
 //                    kairosListener);
 //
-//            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.lisa);
+//            bitmap = BitmapFactory.decodeResource(getResources(), R
+// .drawable.lisa);
 //            myKairos.enroll(bitmap,
 //                    "lisa",
 //                    galleryId,
@@ -390,7 +430,8 @@ public class PhotoIntentActivity extends AppCompatActivity {
 //            mImageView.setVisibility(View.VISIBLE);
             myKairos.listGalleries(kairosListener);
 
-            //TODO: needs to add more photos of the individuals who might go to AT&T Hackathon
+            //TODO: needs to add more photos of the individuals who might go
+            // to AT&T Hackathon
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (UnsupportedEncodingException e) {
@@ -398,16 +439,99 @@ public class PhotoIntentActivity extends AppCompatActivity {
         }
     }
 
-    void startWebRTC(){
-        mTextView.setText("Hello visitor! We'll connect you to our front desk in a second...");
-        final Intent intent = new Intent(this, StartWebRTCActivity.class);
-//        final Intent intent = new Intent(this, WebRTCActivity.class);
+    void startWebRTC() {
+        //mTextView.setText("Hello visitor! We'll connect you to our front
+        // desk in a second...");
 
+        /*Toast.makeText(getApplicationContext(), "Hello visitor! We'll
+        connect you to our front desk in a second...", Toast.LENGTH_LONG)
+        .show();*/
+
+        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog.setTitle("Calling");
+        alertDialog.setMessage("Hello visitor! We'll connect you to our front" +
+                " desk. Please choose a method for calling.");
+
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "ATT WebRTC API",
+                new
+                DialogInterface
+                .OnClickListener
+                () {
+            public void onClick(DialogInterface dialog, int which) {
+                callWebRTC();
+            }
+        });
+
+
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"ALU Call " +
+                "Management API", new
+                DialogInterface
+                .OnClickListener()
+
+        {
+            public void onClick(DialogInterface dialog, int which) {
+                callAlu();
+            }
+        });
+
+        alertDialog.show();
+
+    }
+
+    private void callWebRTC() {
+        final Intent intent = new Intent(this, StartWebRTCActivity
+                .class);
         startActivity(intent);
     }
 
+    private void callAlu() {
+        final ProgressDialog dialog = new ProgressDialog(this);
+        // set indeterminate style
+        dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        // set title and message
+        dialog.setTitle("Please wait");
+        dialog.setMessage("Conneting to office manager...");
+
+        new AsyncTask<Void, Void, Void>() {
+            protected void onPreExecute() {
+                // Pre Code
+                dialog.show();
+            }
+
+            protected Void doInBackground(Void... unused) {
+                try {
+                    URL url = new URL("http://api.foundry.att" +
+                            ".net:9001/a1/nca/callcontrol/call/4047241349" +
+                            "/4088860360");
+                    HttpURLConnection conn = (HttpURLConnection) url
+                            .openConnection();
+                    conn.setReadTimeout(30000);
+                    conn.setConnectTimeout(30000);
+                    conn.setRequestMethod("POST");
+                    conn.setRequestProperty("Content-Length", "0");
+                    conn.setRequestProperty("Authorization", "Bearer " +
+                            "Abw4luAEsItD1YZgUKQKbWhklAhP");
+                    conn.connect();
+                    int response = conn.getResponseCode();
+                    Log.d(TAG, "The response is: " + response);
+                } catch (Exception e) {
+                    Log.e(TAG, e.toString());
+                }
+                return null;
+            }
+
+            protected void onPostExecute(Void unused) {
+                // Post Code
+                if (dialog.isShowing()) {
+                    dialog.dismiss();
+                }
+            }
+        }.execute();
+    }
+
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode,
+                                    Intent data) {
         switch (requestCode) {
             case ACTION_TAKE_PHOTO_B: {
                 if (resultCode == RESULT_OK) {
@@ -425,40 +549,51 @@ public class PhotoIntentActivity extends AppCompatActivity {
         } // switch
     }
 
-    // Some lifecycle callbacks so that the image can survive orientation change
+    // Some lifecycle callbacks so that the image can survive
+    // orientation change
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putParcelable(BITMAP_STORAGE_KEY, mImageBitmap);
-        outState.putBoolean(IMAGEVIEW_VISIBILITY_STORAGE_KEY, (mImageBitmap != null));
+        outState.putBoolean(IMAGEVIEW_VISIBILITY_STORAGE_KEY,
+                (mImageBitmap != null));
         super.onSaveInstanceState(outState);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        mImageBitmap = savedInstanceState.getParcelable(BITMAP_STORAGE_KEY);
+        mImageBitmap = savedInstanceState.getParcelable
+                (BITMAP_STORAGE_KEY);
         mImageView.setImageBitmap(mImageBitmap);
         mImageView.setVisibility(
-                savedInstanceState.getBoolean(IMAGEVIEW_VISIBILITY_STORAGE_KEY) ?
+                savedInstanceState.getBoolean
+                        (IMAGEVIEW_VISIBILITY_STORAGE_KEY) ?
                         ImageView.VISIBLE : ImageView.INVISIBLE
         );
-        mTextView.setVisibility(View.INVISIBLE);
+        //mTextView.setVisibility(View.INVISIBLE);
     }
 
     /**
-     * Indicates whether the specified action can be used as an intent. This
-     * method queries the package manager for installed packages that can
-     * respond to an intent with the specified action. If no suitable package is
+     * Indicates whether the specified action can be used as an
+     * intent. This
+     * method queries the package manager for installed packages that
+     * can
+     * respond to an intent with the specified action. If no suitable
+     * package is
      * found, this method returns false.
-     * http://android-developers.blogspot.com/2009/01/can-i-use-this-intent.html
+     * http://android-developers.blogspot
+     * .com/2009/01/can-i-use-this-intent.html
      *
      * @param context The application's environment.
      * @param action  The Intent action to check for availability.
-     * @return True if an Intent with the specified action can be sent and
+     * @return True if an Intent with the specified action can be
+     * sent and
      * responded to, false otherwise.
      */
-    public static boolean isIntentAvailable(Context context, String action) {
-        final PackageManager packageManager = context.getPackageManager();
+    public static boolean isIntentAvailable(Context context, String
+            action) {
+        final PackageManager packageManager = context
+                .getPackageManager();
         final Intent intent = new Intent(action);
         List<ResolveInfo> list =
                 packageManager.queryIntentActivities(intent,
