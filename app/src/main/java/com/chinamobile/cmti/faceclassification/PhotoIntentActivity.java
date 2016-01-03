@@ -309,7 +309,8 @@ public class PhotoIntentActivity extends AppCompatActivity {
                                 JSONObject transaction = (JSONObject) ((JSONObject) images.get(0)).get(TAG_TRANSACTION);
                                 String name = transaction.has(TAG_SUBJECT) ? (String) transaction.get(TAG_SUBJECT) : (String) transaction.get(TAG_SUBJECTID);
                                 int confidence = (int)(Double.parseDouble((String) transaction.get(TAG_CONFIDENCE)) * 100);
-                                mTextView.setText("Photo matches with " + name + " with confidence: " + confidence + "%");
+//                                mTextView.setText("Photo matches with " + name + " with confidence: " + confidence + "%");
+                                mTextView.setText("Welcome " + name + "! The door will be opened for you.");
 
                                 // post the photo to Kairos
                                 myKairos.enroll(mImageBitmap,
@@ -347,7 +348,7 @@ public class PhotoIntentActivity extends AppCompatActivity {
             myKairos.setAuthentication(this, app_id, api_key);
 
             // enroll coworkers photos once
-//            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.charlie);
+//            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.charlie2);
 //            String selector = "FULL";
 //            String multipleFaces = "false";
 //            String minHeadScale = "0.25";
@@ -368,7 +369,7 @@ public class PhotoIntentActivity extends AppCompatActivity {
 //                    minHeadScale,
 //                    kairosListener);
 //
-//            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.qingfeng);
+//            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.qingfeng2);
 //            myKairos.enroll(bitmap,
 //                    "qingfeng",
 //                    galleryId,
@@ -398,6 +399,7 @@ public class PhotoIntentActivity extends AppCompatActivity {
     }
 
     void startWebRTC(){
+        mTextView.setText("Hello visitor! We'll connect you to our front desk in a second...");
         final Intent intent = new Intent(this, StartWebRTCActivity.class);
 //        final Intent intent = new Intent(this, WebRTCActivity.class);
 

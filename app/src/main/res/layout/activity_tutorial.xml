@@ -141,7 +141,8 @@
         android:layout_alignStart="@+id/phone_number"
         android:layout_alignTop="@+id/get_token"
         android:onClick="getConfig"
-        android:text="GET CONFIG" />
+        android:text="GET CONFIG"
+        android:visibility="invisible" />
 
     <Button
         android:id="@+id/answer_button"
