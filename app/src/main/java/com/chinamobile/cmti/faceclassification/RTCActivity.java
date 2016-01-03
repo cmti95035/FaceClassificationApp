@@ -25,6 +25,7 @@ import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.opengl.GLSurfaceView;
@@ -307,6 +308,10 @@ public class RTCActivity extends WebRTCActivity {
     public void onCallDisconnected(String disconnectedCallId) {
         super.onCallDisconnected(disconnectedCallId);
         dismissProgressBar();
+
+        Intent intent  = new Intent(this, PhotoIntentActivity.class);
+        startActivity(intent);
+
     }
 
     @Override

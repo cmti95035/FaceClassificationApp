@@ -126,7 +126,7 @@ public class StartWebRTCActivity extends AppCompatActivity {
             @Override
             public void onSessionDisconnected() {
                 super.onSessionDisconnected();
-                phone.logout();
+//                phone.logout();
                 stopService(new Intent(getApplicationContext(), RTCService.class));
                 finish();
             }
@@ -198,7 +198,7 @@ public class StartWebRTCActivity extends AppCompatActivity {
                         phone.associateAccessToken(VISITOR, access_token, new PhoneCallbacks.SuccessCallback() {
                             @Override
                             public void onSuccess() {
-                                //phone.logout();
+                                phone.logout();
                                 phone.login(access_token);
                             }
                         }, new PhoneCallbacks.ErrorCallback() {
