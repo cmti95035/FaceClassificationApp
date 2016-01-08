@@ -27,7 +27,7 @@ import retrofit.converter.GsonConverter;
 
 public class RestClient {
     public static final String LOG_TAG = RestClient.class.getSimpleName();
-    private static long READ_TIMEOUT = 10000;
+    private static long READ_TIMEOUT = 30000;
     private ApiService apiService;
 
     public RestClient(String baseURL, Context context) {
