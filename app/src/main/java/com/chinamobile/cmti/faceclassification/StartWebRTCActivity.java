@@ -9,7 +9,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.chinamobile.cmti.faceclassification.R;
 import com.chinamobile.cmti.faceclassification.model.ConfigData;
 import com.att.webrtcsdk.MediaType;
 import com.att.webrtcsdk.apicall.Constants;
@@ -53,12 +52,12 @@ public class StartWebRTCActivity extends AppCompatActivity {
         setContentView(R.layout.activity_tutorial);
 
         // Required - Set, if the DHS is not run in local
-//        Constants.setBaseURL("https://ec2-52-53-232-49.us-west-1.compute.amazonaws.com:9001");
+//        Constants.setBaseURL("https://ec2-54-67-0-246.us-west-1.compute.amazonaws.com:9001");
         Constants.setBaseURL("http://devsummit-ewebrtc.herokuapp.com");
-//        Constants.setSocketUrl("ws://ec2-52-53-232-49.us-west-1.compute.amazonaws.com:9001");
+//        Constants.setSocketUrl("ws://54-67-0-246.us-west-1.compute.amazonaws.com:9001");
         Constants.setSocketUrl("ws://devsummit-ewebrtc.herokuapp.com");
 
-        apiRequest = new ApiRequest();
+        apiRequest = new ApiRequest(getApplicationContext());
 
         sessionId = (TextView) findViewById(R.id.sessionId);
         domain = (TextView) findViewById(R.id.domain);
@@ -117,7 +116,8 @@ public class StartWebRTCActivity extends AppCompatActivity {
 
                     //TODO : validate emailID or UserID with domain if needed
                     String userId = "cmti";
-                    idCallIntent.putExtra("DESTINATION", "sip:" + userId + '@' + domain.getText());
+                    idCallIntent.putExtra("DESTINATION", "sip:" + userId + '@' + "cmti95035.com");
+//                    idCallIntent.putExtra("DESTINATION", "sip:" + userId + '@' + domain.getText());
                     idCallIntent.putExtra("MEDIATYPE", MediaType.AUDIO_VIDEO);
                     startActivity(idCallIntent);
                 }
@@ -181,6 +181,8 @@ public class StartWebRTCActivity extends AppCompatActivity {
         phone = Phone.getPhone(getApplicationContext());
         phone.registerEventListener(phoneEventListener);
 
+//        ((TextView) findViewById(R.id.domain)).setText("cmti95035.com");
+//        access_token = "BF-ACSI~3~20160104181415~6J0ziFL4WvRID0Nz2fnrrvGd2Tv776cu";
         apiRequest.getConfig(new SdkCallbacks.SuccessCallback() {
             @Override
             public void onSuccess(Object object) {
@@ -221,6 +223,19 @@ public class StartWebRTCActivity extends AppCompatActivity {
                 Log.e(TAG, "Error while getting the config " + error);
             }
         });
+
+//        phone.associateAccessToken(VISITOR, access_token, new PhoneCallbacks.SuccessCallback() {
+//            @Override
+//            public void onSuccess() {
+//                phone.logout();
+//                phone.login(access_token);
+//            }
+//        }, new PhoneCallbacks.ErrorCallback() {
+//            @Override
+//            public void onError(String error) {
+//                Log.e(TAG, "Error while associate User " + error);
+//            }
+//        });
     }
 
     @Override

@@ -25,7 +25,7 @@ import javax.net.ssl.X509TrustManager;
 
 public class WebRTCActivity extends AppCompatActivity {
     private WebView webView;
-    private static final String TAG = "FaceClassification";
+    private static final String TAG = WebRTCActivity.class.getSimpleName();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

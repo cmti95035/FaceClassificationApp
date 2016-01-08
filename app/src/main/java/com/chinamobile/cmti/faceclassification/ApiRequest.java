@@ -1,5 +1,6 @@
 package com.chinamobile.cmti.faceclassification;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.chinamobile.cmti.faceclassification.model.ConfigData;
@@ -34,17 +35,17 @@ public class ApiRequest {
     private final RestClient rc;
     private final RestClient dhsRc;
 
-    public ApiRequest() {
-        rc = new RestClient(BF_URL);
-        dhsRc = new RestClient(Constants.getBaseURL());
+    public ApiRequest(Context context) {
+        rc = new RestClient(BF_URL, context);
+        dhsRc = new RestClient(Constants.getBaseURL(), context);
     }
 
-    public static ApiRequest getInstance() {
-        if (singleton == null) {
-            singleton = new ApiRequest();
-        }
-        return singleton;
-    }
+//    public static ApiRequest getInstance() {
+//        if (singleton == null) {
+//            singleton = new ApiRequest();
+//        }
+//        return singleton;
+//    }
 
     private String getHeaderValue(final String name, final Response response) {
         for (final Header header : response.getHeaders()) {

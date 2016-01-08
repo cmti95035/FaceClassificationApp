@@ -27,10 +27,17 @@ import android.widget.Toast;
 import com.kairos.Kairos;
 import com.kairos.KairosListener;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -324,143 +331,144 @@ public class PhotoIntentActivity extends AppCompatActivity {
         mDialog.setTitle("Please wait");
         mDialog.setMessage("Recognizing...");
 
-        initDigitalLife();
-        try {
-            // listener
-            kairosListener = new KairosListener() {
-
-                @Override
-                public void onSuccess(String response) {
-                    if (mDialog.isShowing()) {
-                        mDialog.dismiss();
-                    }
-                    Log.d("Kairos response:", response);
-                    try {
-                        JSONObject jsonObject = new JSONObject(response);
-
-                        if (jsonObject.has(TAG_ERRORS)) {
-                            // image error
-                            startWebRTC();
-                        } else {
-                            JSONArray images = (JSONArray) jsonObject
-                                    .getJSONArray(TAG_IMAGES);
-                            if (((JSONObject) ((JSONObject) images.get(0))
-                                    .get(TAG_TRANSACTION)).get(TAG_STATUS)
-                                    .equals("failure")) {
-                                // no match
-                                startWebRTC();
-                            } else {
-                                JSONObject transaction = (JSONObject) (
-                                        (JSONObject) images.get(0)).get
-                                        (TAG_TRANSACTION);
-                                String name = transaction.has(TAG_SUBJECT) ?
-                                        (String) transaction.get(TAG_SUBJECT)
-                                        : (String) transaction.get
-                                        (TAG_SUBJECTID);
-                                int confidence = (int) (Double.parseDouble(
-                                        (String) transaction.get
-                                                (TAG_CONFIDENCE)) * 100);
-//                                mTextView.setText("Photo matches with " +
-// name + " with confidence: " + confidence + "%");
-                                //mTextView.setText("Welcome " + name + "!
-                                // The door will be opened for you.");
-                                Toast.makeText(getApplicationContext(),
-                                        "Welcome " + name + "! The door will " +
-                                                "be opened for you.", Toast
-                                                .LENGTH_LONG)
-                                        .show();
-
-                                unlockDoor();
-
-                                // post the photo to Kairos
-                                myKairos.enroll(mImageBitmap,
-                                        name,
-                                        galleryId,
-                                        selector,
-                                        "false",
-                                        minHeadScale,
-                                        kairosListener);
-                            }
-                        }
-                    } catch (JSONException ex) {
-                        ex.printStackTrace();
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-                    //mTextView.setVisibility(View.VISIBLE);
-                }
-
-                @Override
-                public void onFail(String response) {
-                    if (mDialog.isShowing()) {
-                        mDialog.dismiss();
-                    }
-                    Log.d("Kairos response:", response);
-                    startWebRTC();
-                }
-            };
-
-
-        /* * * instantiate a new kairos instance * * */
-            myKairos = new Kairos();
-
-        /* * * set authentication * * */
-            myKairos.setAuthentication(this, app_id, api_key);
-
-            // enroll coworkers photos once
-//            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R
-// .drawable.charlie2);
-//            String selector = "FULL";
-//            String multipleFaces = "false";
-//            String minHeadScale = "0.25";
-//            myKairos.enroll(bitmap,
-//                    "charlie",
-//                    galleryId,
-//                    selector,
-//                    multipleFaces,
-//                    minHeadScale,
-//                    kairosListener);
+        startWebRTC();
+//        initDigitalLife();
+//        try {
+//            // listener
+//            kairosListener = new KairosListener() {
 //
-//            bitmap = BitmapFactory.decodeResource(getResources(), R
-// .drawable.rui);
-//            myKairos.enroll(bitmap,
-//                    "rui",
-//                    galleryId,
-//                    selector,
-//                    multipleFaces,
-//                    minHeadScale,
-//                    kairosListener);
+//                @Override
+//                public void onSuccess(String response) {
+//                    if (mDialog.isShowing()) {
+//                        mDialog.dismiss();
+//                    }
+//                    Log.d("Kairos response:", response);
+//                    try {
+//                        JSONObject jsonObject = new JSONObject(response);
 //
-//            bitmap = BitmapFactory.decodeResource(getResources(), R
-// .drawable.qingfeng2);
-//            myKairos.enroll(bitmap,
-//                    "qingfeng",
-//                    galleryId,
-//                    selector,
-//                    multipleFaces,
-//                    minHeadScale,
-//                    kairosListener);
+//                        if (jsonObject.has(TAG_ERRORS)) {
+//                            // image error
+//                            startWebRTC();
+//                        } else {
+//                            JSONArray images = (JSONArray) jsonObject
+//                                    .getJSONArray(TAG_IMAGES);
+//                            if (((JSONObject) ((JSONObject) images.get(0))
+//                                    .get(TAG_TRANSACTION)).get(TAG_STATUS)
+//                                    .equals("failure")) {
+//                                // no match
+//                                startWebRTC();
+//                            } else {
+//                                JSONObject transaction = (JSONObject) (
+//                                        (JSONObject) images.get(0)).get
+//                                        (TAG_TRANSACTION);
+//                                String name = transaction.has(TAG_SUBJECT) ?
+//                                        (String) transaction.get(TAG_SUBJECT)
+//                                        : (String) transaction.get
+//                                        (TAG_SUBJECTID);
+//                                int confidence = (int) (Double.parseDouble(
+//                                        (String) transaction.get
+//                                                (TAG_CONFIDENCE)) * 100);
+////                                mTextView.setText("Photo matches with " +
+//// name + " with confidence: " + confidence + "%");
+//                                //mTextView.setText("Welcome " + name + "!
+//                                // The door will be opened for you.");
+//                                Toast.makeText(getApplicationContext(),
+//                                        "Welcome " + name + "! The door will " +
+//                                                "be opened for you.", Toast
+//                                                .LENGTH_LONG)
+//                                        .show();
 //
-//            bitmap = BitmapFactory.decodeResource(getResources(), R
-// .drawable.lisa);
-//            myKairos.enroll(bitmap,
-//                    "lisa",
-//                    galleryId,
-//                    selector,
-//                    multipleFaces,
-//                    minHeadScale,
-//                    kairosListener);
-//            mImageView.setImageBitmap(bitmap);
-//            mImageView.setVisibility(View.VISIBLE);
-            myKairos.listGalleries(kairosListener);
-
-            //TODO: needs to add more photos of the individuals who might go
-            // to AT&T Hackathon
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+//                                unlockDoor();
+//
+//                                // post the photo to Kairos
+//                                myKairos.enroll(mImageBitmap,
+//                                        name,
+//                                        galleryId,
+//                                        selector,
+//                                        "false",
+//                                        minHeadScale,
+//                                        kairosListener);
+//                            }
+//                        }
+//                    } catch (JSONException ex) {
+//                        ex.printStackTrace();
+//                    } catch (UnsupportedEncodingException e) {
+//                        e.printStackTrace();
+//                    }
+//                    //mTextView.setVisibility(View.VISIBLE);
+//                }
+//
+//                @Override
+//                public void onFail(String response) {
+//                    if (mDialog.isShowing()) {
+//                        mDialog.dismiss();
+//                    }
+//                    Log.d("Kairos response:", response);
+//                    startWebRTC();
+//                }
+//            };
+//
+//
+//        /* * * instantiate a new kairos instance * * */
+//            myKairos = new Kairos();
+//
+//        /* * * set authentication * * */
+//            myKairos.setAuthentication(this, app_id, api_key);
+//
+//            // enroll coworkers photos once
+////            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R
+//// .drawable.charlie2);
+////            String selector = "FULL";
+////            String multipleFaces = "false";
+////            String minHeadScale = "0.25";
+////            myKairos.enroll(bitmap,
+////                    "charlie",
+////                    galleryId,
+////                    selector,
+////                    multipleFaces,
+////                    minHeadScale,
+////                    kairosListener);
+////
+////            bitmap = BitmapFactory.decodeResource(getResources(), R
+//// .drawable.rui);
+////            myKairos.enroll(bitmap,
+////                    "rui",
+////                    galleryId,
+////                    selector,
+////                    multipleFaces,
+////                    minHeadScale,
+////                    kairosListener);
+////
+////            bitmap = BitmapFactory.decodeResource(getResources(), R
+//// .drawable.qingfeng2);
+////            myKairos.enroll(bitmap,
+////                    "qingfeng",
+////                    galleryId,
+////                    selector,
+////                    multipleFaces,
+////                    minHeadScale,
+////                    kairosListener);
+////
+////            bitmap = BitmapFactory.decodeResource(getResources(), R
+//// .drawable.lisa);
+////            myKairos.enroll(bitmap,
+////                    "lisa",
+////                    galleryId,
+////                    selector,
+////                    multipleFaces,
+////                    minHeadScale,
+////                    kairosListener);
+////            mImageView.setImageBitmap(bitmap);
+////            mImageView.setVisibility(View.VISIBLE);
+//            myKairos.listGalleries(kairosListener);
+//
+//            //TODO: needs to add more photos of the individuals who might go
+//            // to AT&T Hackathon
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        } catch (UnsupportedEncodingException e) {
+//            e.printStackTrace();
+//        }
     }
 
     void startWebRTC() {
